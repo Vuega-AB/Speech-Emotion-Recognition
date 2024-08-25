@@ -44,6 +44,10 @@ def extract_features(data, sample_rate):
 def get_features_from_audio(file_path, chunk_size=2.5):
     data, sample_rate = librosa.load(file_path)
     total_duration = librosa.get_duration(y=data, sr=sample_rate)
+
+    if total_duration < chunk_size:
+        # If the audio is too short, use the entire audio for feature extraction
+        return extract_features(data, sample_rate).reshape(1, -1)
     
     all_features = []
 
@@ -55,8 +59,14 @@ def get_features_from_audio(file_path, chunk_size=2.5):
         res1 = extract_features(chunk, sample_rate)
         all_features.append(res1)
     
-    result = np.vstack(all_features)
+    if len(all_features) > 0:
+        result = np.vstack(all_features)
+    else:
+        # If no features were extracted, return an empty array
+        result = np.array([]).reshape(0, 0)
+        
     return result
+
 
 def predict_emotion_from_audio(file_path, model, scaler, encoder):
     features = get_features_from_audio(file_path)
@@ -64,12 +74,16 @@ def predict_emotion_from_audio(file_path, model, scaler, encoder):
     reshaped_features = np.expand_dims(scaled_features, axis=2)
     
     predictions = model.predict(reshaped_features)
-    decoded_predictions = encoder.inverse_transform(predictions)
-    
-    unique, counts = np.unique(decoded_predictions, return_counts=True)
-    final_prediction = unique[np.argmax(counts)]
+    # decoded_predictions = encoder.inverse_transform(predictions)  # Comment this out
+
+    # For now, let's just print the raw predictions
+    st.write(f"Raw Predictions: {predictions}")
+
+    # Assuming the predictions are probabilities, take the argmax for the most likely class
+    final_prediction = np.argmax(predictions, axis=1)
     
     return final_prediction
+
 
 def main():
     # Load the model, scaler, and encoder
