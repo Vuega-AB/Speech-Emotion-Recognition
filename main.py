@@ -69,6 +69,18 @@ def get_features_from_audio(file_path, chunk_size=2.5):
 
 
 def predict_emotion_from_audio(file_path, model, scaler, encoder):
+
+    category_mapping = {
+        0: 'angry',
+        1: 'calm',
+        2: 'disgust',
+        3: 'fear',
+        4: 'happy',
+        5: 'neutral',
+        6: 'sad',
+        7: 'surprise'
+    }
+
     features = get_features_from_audio(file_path)
     scaled_features = scaler.transform(features)
     reshaped_features = np.expand_dims(scaled_features, axis=2)
@@ -83,11 +95,9 @@ def predict_emotion_from_audio(file_path, model, scaler, encoder):
     final_prediction_index  = np.argmax(predictions, axis=1)
     
     # Map the index back to the corresponding emotion
-    category_mapping = {index: category for index, category in enumerate(encoder.categories_[0])}
     final_prediction_emotion = category_mapping[final_prediction_index[0]]
     
     return final_prediction_emotion
-
 
 def main():
     # Load the model, scaler, and encoder
