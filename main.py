@@ -68,9 +68,9 @@ def get_features_from_audio(file_path, chunk_size=2.5):
     return result
 
 
-def predict_emotion_from_audio(file_path, model, scaler, encoder):
-
-    category_mapping = {
+def predict_emotion_from_audio(file_path, model, scaler, encoder=None):
+    # Use the categories you provided
+    emotion_mapping = {
         0: 'angry',
         1: 'calm',
         2: 'disgust',
@@ -80,24 +80,22 @@ def predict_emotion_from_audio(file_path, model, scaler, encoder):
         6: 'sad',
         7: 'surprise'
     }
-
+    
     features = get_features_from_audio(file_path)
     scaled_features = scaler.transform(features)
     reshaped_features = np.expand_dims(scaled_features, axis=2)
     
     predictions = model.predict(reshaped_features)
-    # decoded_predictions = encoder.inverse_transform(predictions)  # Comment this out
-
-    # For now, let's just print the raw predictions
-    st.write(f"Raw Predictions: {predictions}")
-
-    # Assuming the predictions are probabilities, take the argmax for the most likely class
-    final_prediction_index  = np.argmax(predictions, axis=1)
     
-    # Map the index back to the corresponding emotion
-    final_prediction_emotion = category_mapping[final_prediction_index[0]]
+    # Convert the predictions to emotion labels
+    predicted_indices = np.argmax(predictions, axis=1)
+    predicted_emotions = [emotion_mapping[i] for i in predicted_indices]
     
-    return final_prediction_emotion
+    # Count the most frequent emotion in the predictions
+    unique, counts = np.unique(predicted_emotions, return_counts=True)
+    final_prediction = unique[np.argmax(counts)]
+    
+    return final_prediction
 
 def main():
     # Load the model, scaler, and encoder
