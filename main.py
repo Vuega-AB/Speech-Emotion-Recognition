@@ -80,9 +80,13 @@ def predict_emotion_from_audio(file_path, model, scaler, encoder):
     st.write(f"Raw Predictions: {predictions}")
 
     # Assuming the predictions are probabilities, take the argmax for the most likely class
-    final_prediction = np.argmax(predictions, axis=1)
+    final_prediction_index  = np.argmax(predictions, axis=1)
     
-    return final_prediction
+    # Map the index back to the corresponding emotion
+    category_mapping = {index: category for index, category in enumerate(encoder.categories_[0])}
+    final_prediction_emotion = category_mapping[final_prediction_index[0]]
+    
+    return final_prediction_emotion
 
 
 def main():
