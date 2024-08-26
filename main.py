@@ -4,6 +4,8 @@ import pickle
 import keras
 from keras.models import load_model
 import streamlit as st
+from audio_recorder_streamlit import audio_recorder
+
 # Load the trained model, scaler, and encoder
 def load_emotion_recognition_model(model_path, scaler_path, encoder_path):
     model = load_model(model_path)
@@ -67,7 +69,6 @@ def get_features_from_audio(file_path, chunk_size=2.5):
         
     return result
 
-
 def predict_emotion_from_audio(file_path, model, scaler, encoder=None):
     # Use the categories you provided
     emotion_mapping = {
@@ -102,18 +103,39 @@ def main():
     model, scaler, encoder = load_emotion_recognition_model('model/emotion_recognition_model.h5', 'model/scaler.pkl', 'model/encoder.pkl')
 
     # Streamlit UI
-    st.title("Emotion Recognition from Audio")
-    uploaded_file = st.file_uploader("Choose an audio file...", type=["wav", "mp3"])
+    st.title("🎙️ Emotion Recognition from Audio")
 
-    if uploaded_file is not None:
-        # Save the uploaded file to a temporary location
-        with open("temp_audio.wav", "wb") as f:
-            f.write(uploaded_file.getbuffer())
+    option = st.selectbox("Choose an option", ["Upload an audio file", "Record audio"])
+
+    if option == "Upload an audio file":
+        uploaded_file = st.file_uploader("Choose an audio file...", type=["wav", "mp3"])
+
+        if uploaded_file is not None:
+            with st.spinner("Processing audio..."):
+                # Save the uploaded file to a temporary location
+                with open("temp_audio.wav", "wb") as f:
+                    f.write(uploaded_file.getbuffer())
+                
+                # Predict emotion
+                predicted_emotion = predict_emotion_from_audio("temp_audio.wav", model, scaler, encoder)
+                
+                st.success(f"Predicted Emotion: **{predicted_emotion}**")
+
+    elif option == "Record audio":
         
-        # Predict emotion
-        predicted_emotion = predict_emotion_from_audio("temp_audio.wav", model, scaler, encoder)
+        audio_bytes = audio_recorder()
         
-        st.write(f"Predicted Emotion: {predicted_emotion}")
+        if audio_bytes:
+            st.audio(audio_bytes, format='audio/wav')
+            with st.spinner("Processing recorded audio..."):
+                # Save the recorded audio to a file
+                with open("temp_audio.wav", "wb") as f:
+                    f.write(audio_bytes)
+                
+                # Predict emotion
+                predicted_emotion = predict_emotion_from_audio("temp_audio.wav", model, scaler, encoder)
+                
+                st.success(f"Predicted Emotion: **{predicted_emotion}**")
 
 if __name__ == "__main__":
     main()
