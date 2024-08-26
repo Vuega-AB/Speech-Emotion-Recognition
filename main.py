@@ -1,7 +1,6 @@
 import numpy as np
 import librosa
 import pickle
-import keras
 from keras.models import load_model
 import streamlit as st
 from audio_recorder_streamlit import audio_recorder
