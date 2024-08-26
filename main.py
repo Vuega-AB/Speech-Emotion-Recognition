@@ -5,17 +5,15 @@ from keras.models import load_model
 import streamlit as st
 from audio_recorder_streamlit import audio_recorder
 
-# Load the trained model, scaler, and encoder
-def load_emotion_recognition_model(model_path, scaler_path, encoder_path):
+# Load the trained model, scale
+def load_emotion_recognition_model(model_path, scaler_path):
     model = load_model(model_path)
     
     with open(scaler_path, 'rb') as f:
         scaler = pickle.load(f)
         
-    with open(encoder_path, 'rb') as f:
-        encoder = pickle.load(f)
     
-    return model, scaler, encoder
+    return model, scaler
 
 def extract_features(data, sample_rate):
     # ZCR
@@ -68,7 +66,7 @@ def get_features_from_audio(file_path, chunk_size=2.5):
         
     return result
 
-def predict_emotion_from_audio(file_path, model, scaler, encoder=None):
+def predict_emotion_from_audio(file_path, model, scaler):
     # Use the categories you provided
     emotion_mapping = {
         0: 'angry',
@@ -98,8 +96,8 @@ def predict_emotion_from_audio(file_path, model, scaler, encoder=None):
     return final_prediction
 
 def main():
-    # Load the model, scaler, and encoder
-    model, scaler, encoder = load_emotion_recognition_model('model/emotion_recognition_model.h5', 'model/scaler.pkl', 'model/encoder.pkl')
+    # Load the model, scaler
+    model, scaler = load_emotion_recognition_model('model/emotion_recognition_model(1).h5', 'model/scaler(1).pkl')
 
     # Streamlit UI
     st.title("🎙️ Emotion Recognition from Audio")
@@ -116,7 +114,7 @@ def main():
                     f.write(uploaded_file.getbuffer())
                 
                 # Predict emotion
-                predicted_emotion = predict_emotion_from_audio("temp_audio.wav", model, scaler, encoder)
+                predicted_emotion = predict_emotion_from_audio("temp_audio.wav", model, scaler)
                 
                 st.success(f"Predicted Emotion: **{predicted_emotion}**")
 
@@ -132,7 +130,7 @@ def main():
                     f.write(audio_bytes)
                 
                 # Predict emotion
-                predicted_emotion = predict_emotion_from_audio("temp_audio.wav", model, scaler, encoder)
+                predicted_emotion = predict_emotion_from_audio("temp_audio.wav", model, scaler)
                 
                 st.success(f"Predicted Emotion: **{predicted_emotion}**")
 
